@@ -1,3 +1,9 @@
+# Введение
+
+Финальная схема находится в корневой папке под названием Final scheme (task 6).drawio. Промежуточные схемы находятся в папках mongo-sharding (task2) и mongo-sharding-repl (task3).
+
+Перед перезапуском Docker рекомендую почистить Images и Volumes. Без очистки работало не всегда корректно
+
 # Настройка MongoDB Sharded Cluster с использованием Docker
 
 ## Запуск контейнеров
@@ -53,7 +59,8 @@ echo "yes" | redis-cli --cluster create   173.17.0.2:6379   173.17.0.3:6379   17
 ```bash
 docker exec -it redis_1 redis-cli ping
 ```
------------------------------------------------------------------------------------------------------------------
+
+---
 
 # Ручная настройка
 
@@ -142,4 +149,9 @@ sh.addShard("shard1/shard1-3:27018")
 sh.addShard("shard2/shard2-1:27019")
 sh.addShard("shard2/shard2-2:27019")
 sh.addShard("shard2/shard2-3:27019")
+```
+
+Redis commands:
+```bash
+docker exec -it redis_1 redis-cli
 ```
