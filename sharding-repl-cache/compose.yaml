@@ -8,8 +8,7 @@ services:
     ports:
       - "27017:27017"
     networks:
-      app-network:
-        ipv4_address: 173.17.0.10
+      - mongo_network
     volumes:
       - config-data:/data/db
     command: [ "--configsvr", "--replSet", "config_server", "--bind_ip_all", "--port", "27017" ]
@@ -24,8 +23,7 @@ services:
     container_name: shard1-1
     restart: always
     networks:
-      app-network:
-        ipv4_address: 173.17.0.9
+      - mongo_network
     volumes:
       - shard1-1-data:/data/db
     command: [ "--shardsvr", "--replSet", "shard1", "--bind_ip_all", "--port", "27018" ]
@@ -39,8 +37,7 @@ services:
     container_name: shard1-2
     restart: always
     networks:
-      app-network:
-        ipv4_address: 173.17.0.11
+      - mongo_network
     volumes:
       - shard1-2-data:/data/db
     command: [ "--shardsvr", "--replSet", "shard1", "--bind_ip_all", "--port", "27018" ]
@@ -54,8 +51,7 @@ services:
     container_name: shard1-3
     restart: always
     networks:
-      app-network:
-        ipv4_address: 173.17.0.12
+      - mongo_network
     volumes:
       - shard1-3-data:/data/db
     command: [ "--shardsvr", "--replSet", "shard1", "--bind_ip_all", "--port", "27018" ]
@@ -70,8 +66,7 @@ services:
     container_name: shard2-1
     restart: always
     networks:
-      app-network:
-        ipv4_address: 173.17.0.8
+      - mongo_network
     volumes:
       - shard2-1-data:/data/db
     command: [ "--shardsvr", "--replSet", "shard2", "--bind_ip_all", "--port", "27019" ]
@@ -85,8 +80,7 @@ services:
     container_name: shard2-2
     restart: always
     networks:
-      app-network:
-        ipv4_address: 173.17.0.13
+      - mongo_network
     volumes:
       - shard2-2-data:/data/db
     command: [ "--shardsvr", "--replSet", "shard2", "--bind_ip_all", "--port", "27019" ]
@@ -100,8 +94,7 @@ services:
     container_name: shard2-3
     restart: always
     networks:
-      app-network:
-        ipv4_address: 173.17.0.14
+      - mongo_network
     volumes:
       - shard2-3-data:/data/db
     command: [ "--shardsvr", "--replSet", "shard2", "--bind_ip_all", "--port", "27019" ]
@@ -115,13 +108,12 @@ services:
     image: mongo:latest
     container_name: mongos_router
     restart: always
-    # Убедитесь, что порт 27020 не занят на хосте перед запуском
+    # Убедитесь, что порт 27029 не занят на хосте перед запуском
     ports:
-      - "27020:27020"
+      - "27029:27029"
     networks:
-      app-network:
-        ipv4_address: 173.17.0.17
-    command: [ "mongos", "--configdb", "config_server/configSrv:27017", "--bind_ip_all", "--port", "27020" ]
+      - mongo_network
+    command: [ "mongos", "--configdb", "config_server/configSrv:27017", "--bind_ip_all", "--port", "27029" ]
     healthcheck:
       test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
       interval: 5s
@@ -131,14 +123,15 @@ services:
     image: "redis:latest"
     container_name: redis_1
     ports:
-      - "6379"
+      - "6379:6379"
     volumes:
       - redis_1_data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
     networks:
-      app-network:
-        ipv4_address: 173.17.0.2
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      start_period: 10s
 
   # Приложение на Python с PyMongo
   pymongo_api:
@@ -149,28 +142,18 @@ services:
     image: kazhem/pymongo_api:1.0.0
     depends_on:
       - mongos_router
-      - shard1-1
-      - shard1-2
-      - shard1-3
-      - shard2-1
-      - shard2-2
-      - shard2-3
-      - configSrv
-      - redis_1
     ports:
       - 8080:8080
     environment:
-      MONGODB_URL: "mongodb://mongos_router:27020"
+      MONGODB_URL: "mongodb://mongos_router:27029"
       MONGODB_DATABASE_NAME: "somedb"
       REDIS_URL: "redis://redis_1:6379"
+    networks:
+      - mongo_network
 
 networks:
-  app-network:
+  mongo_network:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 173.17.0.0/16
 
 volumes:
   config-data:
@@ -180,4 +163,4 @@ volumes:
   shard2-1-data:
   shard2-2-data:
   shard2-3-data:
-  redis_1_data: {}
+  redis_1_data:

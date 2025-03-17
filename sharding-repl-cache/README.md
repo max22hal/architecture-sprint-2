@@ -35,6 +35,13 @@ docker-compose up -d
 ```bash
 ./scripts/add-shards-to-router.sh
 ```
+
+## Добавление инстансов в приложение
+
+```bash
+./scripts/mongo-init.sh
+```
+
 ## Настройка Redis
 
 Только для кластера. В данном примере используется тольео одна нода
@@ -42,9 +49,10 @@ docker-compose up -d
 docker exec -it redis_1 sh
 echo "yes" | redis-cli --cluster create   173.17.0.2:6379   173.17.0.3:6379   173.17.0.4:6379   173.17.0.5:6379   173.17.0.6:6379   173.17.0.7:6379   --cluster-replicas 1
 ```
-
-
-
+Пинг редиса
+```bash
+docker exec -it redis_1 redis-cli ping
+```
 -----------------------------------------------------------------------------------------------------------------
 
 # Ручная настройка

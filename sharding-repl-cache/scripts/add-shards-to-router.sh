@@ -3,7 +3,7 @@
 ###
 # Добавляем шарды в роутер
 ###
-docker compose exec -T mongos_router mongosh --port 27020 --quiet <<EOF
+docker compose exec -T mongos_router mongosh --port 27029 --quiet <<EOF
 sh.addShard("shard1/shard1-1:27018")
 sh.addShard("shard1/shard1-2:27018")
 sh.addShard("shard1/shard1-3:27018")
